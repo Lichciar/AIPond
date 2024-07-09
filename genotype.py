@@ -19,16 +19,16 @@
 5(1) - конец программы;
 
 Начало: 19 июля 2019 г. 15:56 (версия 0.1.1.).
-Обновлена: 01 августа 2020 г. 01:13.
+Обновлена: 15 августа 2022 г. 16:00.
 """
 
 # Версия скрипта.
-version = '0.1.1'
+version = '0.1.2'
 
 # Планирование разработки:
 
-# Исправлено в ver.0.1.1:
-# -----------------------
+# Выполнено в ver.0.1.1 от 19 июля 2019 г.:
+# ------------------------------------------
 # 1. Создан новый класс Genotype в отдельном файле.
 # 2. Сделана генерация нового генотипа.
 # 3. Сделано тестирование генерации нового генотипа.
@@ -44,10 +44,21 @@ version = '0.1.1'
 # 12. Заменил слово "map" на "overview".
 # 13. Добавлена функция "load" для чтения генотипа из файла.
 
-# Запланировано в ver.0.1.2:
+# Выполнено в ver.0.1.2:
+# -----------------------
+# 1. Небольшая правка комментариев.
+# 2. Добавлена система фиксирования информации "info".
+# 3. 
+
+# План работ на ver.0.1.X:
 # --------------------------
 # 1. Вывод ошибок в лог-файл (Нужно создать отдельный пакет).
-# 2. Исправить глупую мутацию.
+# 2. Исправить глупую мутацию, а именно:
+#    Допусти в программе генотипа №0 записана команда №1 с
+#    параметром 34. В результате мутации программа генотипа №0
+#    перезаписывается на комманду №0, а параметр 34 остаётся.
+#    Команды с номером №34 не существует. Что делать? Просто игнорировать?
+#    Или переписывать генотип с удалением параметра 34.
 # 3. Рассмотреть возможность хранения информации о количестве
 #    особей генотипа, относительной дате создания генотипа и
 #    относительной дате смерти всех особей генотипа.
@@ -61,14 +72,10 @@ version = '0.1.1'
 # 8. Определиться со значением на карте: 0 - пусто, 1 - стена, 2 и т.д.
 #    значит уже номер бота.
 
-# Подключаем модуль генератора случайных чисел.
-import random
-
-# Подключаем модуль JSON.
-import json
-
-# Подключаем настройки.
-import settings
+import random   # Подключаем модуль генератора случайных чисел.
+import json     # Подключаем модуль JSON.
+import settings # Подключаем настройки.
+import info     # Подключаем систему фиксирования работы скрипта.
 
 # Создаём класс генотипа бота.
 class Genotype:
@@ -77,22 +84,47 @@ class Genotype:
     def __init__(self, operation = 'New', old_genotype = []):
         """ Конструктор класса. """
         
+        # Вывод работы инициализации класса:
+        # Название служебной программы,
+        # которая запрашивает вывод информации.
+        info_object = 'genotype.Genotype.__init__'
+        # Вывод информации.
+        message = 'Инициализация нового экземпляра класса Genotype:'
+        info.output(info_object, message)
+        # Наименование операции над генотипом.
+        message = ('_Наименование операции над генотипом (operation): ' +
+            operation)
+        info.output(info_object, message)
+        
         # Инициализация порядкового номера генотипа.
         self.cng = settings.CNG_DEFAULT
+        message = ('_Инициализация номера генотипа по умолчанию (cng =' +
+            ' CNG_DEFAULT): ' + str(self.cng))
+        info.output(info_object, message)
         
         # Инициализация пустого генотипа.
         self.genotype = [0 for loop in range(0, 64)]
+        message = ('_Создание чистой программмы генотипа (genotype): ' +
+            str(self.genotype))
+        info.output(info_object, message)
         
         # Если нужно создать новый генотип...
         if operation == 'New':
             loop = 0
             while(loop < len(self.genotype)):
+                
                 # Записыпаев команду в генотип.
                 self.genotype[loop] = random.randint(0, 5)
+                message = ('_Случайная генерация команды №' + str(loop) +
+                    ' для программы генотипа: команда №' +
+                    str(self.genotype[loop]))
+                info.output(info_object, message)
                                 
                 # Если записывается команда 5 - "конец программы",
                 # останавливаем генерацию генотипа.
                 if self.genotype[loop] == 5:
+                    message = ('_Команда №5, означает конец программы.')
+                    info.output(info_object, message)
                     break
                     
                 # Комманды 1, 2, 3 имеют параметр.
@@ -100,29 +132,54 @@ class Genotype:
                    and self.genotype[loop] <= 3 and loop < 63):
                     loop += 1
                     self.genotype[loop] = random.randint(1, 64)
+                    message = ('_Случайная генерация параметра для команды: ' +
+                        str(self.genotype[loop]))
+                    info.output(info_object, message)
                     
                 loop += 1
                     
         # Если надо сделать генотип на основе существующего
         # мутированием.....
         # ГЛУПАЯ МУТАЦИЯ. ПЕРЕДЕЛАТЬ.
+        # мутация не учитавает комманды с параметрами!!!
         if operation == 'Mutation':
             self.genotype = old_genotype
+            message = ('_Получаем генотип родитель (old_genotype): ' +
+                str(old_genotype))
+            info.output(info_object, message)
             mutation = random.randint(0, 64)
             loop = random.randint(0, 63)
+            message = ('_Производим мутацию программы генотипа №' +
+                str(loop) + ' на команду №' + str(mutation))
+            info.output(info_object, message)
             self.genotype[loop] = mutation
+
+        message = ('_Мутированная программа генотипа (genotype): ' +
+            str(self.genotype))
+        info.output(info_object, message)
     
     def save(self):
         """ Сохранение генотипа на компьютер. """
         
+        # Вывод работы метода класса:
+        # Название служебной программы,
+        # которая запрашивает вывод информации.
+        info_object = 'genotype.Genotype.save'
+
         # Открываем файл для присвоения порядкового номера.
+        message = ('_Пытаемся открыть файл ' +
+            str(settings.CNG_FILE) + ' для чтения')
+        info.output(info_object, message)
         try:
             file = open(settings.CNG_FILE, 'r')
         # Если файл не существует
         except FileNotFoundError:
             # Current Number Genotype == cng.
             cng = settings.CNG_DEFAULT
-            # (A) Добавить запись в лог-файл.
+            message = ('_Файл ' + str(settings.CNG_FILE) + ' не найден, ' +
+                'поэтому cng = ' + str(cng))
+            info.output(info_object, message)
+
         # Если файл открылся берём номер из него.
         else:
             cng = file.read()
@@ -130,69 +187,120 @@ class Genotype:
             # пустой.
             if len(cng) == 0:
                 cng = settings.CNG_DEFAULT
-                # (A) Добавить запись в лог-файл.
+                message = ('_Файл ' + str(settings.CNG_FILE) + ' открылся, ' +
+                    'но он пуст, поэтому cng = ' + str(cng))
+                info.output(info_object, message)
             # Рассматриваем ситуацию когда в файле записано не
             # целое число.
             try:
                 cng = int(cng)
-                # (A) Добавить запись в лог-файл.
             except ValueError:
                 cng = settings.CNG_DEFAULT
+                message = ('_Файл ' + str(settings.CNG_FILE) + ' открылся, ' +
+                    'но содержит не цифровой номер, поэтому cng = ' +
+                    str(cng))
+                info.output(info_object, message)
+
+            # Закрываем файл.
             file.close()
+            message = ('_Файл ' + str(settings.CNG_FILE) + ' закрываем.')
+            info.output(info_object, message)
         
+        # Выдаём генотипу собственный номер.
+        self.cng = cng
+
         # Увеличиваем порядковый номер на 1.
         cng += 1
         
         # Записываем новый номер в файл.
+        message = ('_Пытаемся открыть файл ' + str(settings.CNG_FILE) +
+            ' для записи')
+        info.output(info_object, message)
         file = open(settings.CNG_FILE, 'w')
         file.write(str(cng))
+        message = ('_Записываем в файл ' + str(settings.CNG_FILE) +
+            ' cng увеличенный на 1')
+        info.output(info_object, message)
         file.close()
-        
-        # Выдаём генотипу собственный номер.
-        self.cng = cng
+        message = ('_Файл ' + str(settings.CNG_FILE) + ' закрываем.')
+        info.output(info_object, message)
         
         # Сохраняем файл с генотипом в формате json.
         output_data = { 'cng': self.cng,
                         'genotype': self.genotype}
         
         # Открываем новый файл и записываем в него генотип.
-        file = open(settings.GD_FILE + str(cng) + '.json', 'w')
+        file = open(settings.GD_FILE + str(self.cng) + '.json', 'w')
+        message = ('_Пытаемся открыть файл ' + str(settings.GD_FILE +
+            str(self.cng) + '.json') + ' для записи')
+        info.output(info_object, message)
         json.dump(output_data, file)
+        message = ('_В файл ' + str(settings.GD_FILE + str(self.cng) +
+            '.json') + ' записываем cng = ' + str(self.cng) + ' и генотип: ' +
+            str(self.genotype))
+        info.output(info_object, message)
         file.close()
+        message = ('_Файл ' + str(settings.GD_FILE + str(self.cng) +
+            '.json') + ' закрываем.')
+        info.output(info_object, message)
 
     def load(self, cng):
         """ Чтение генотипа с компьютер. """
         
+        # Вывод работы метода класса:
+        # Название служебной программы,
+        # которая запрашивает вывод информации.
+        info_object = 'genotype.Genotype.load'
+
         # Открываем файл для присвоения порядкового номера.
+        message = ('_Пытаемся открыть файл ' + str(settings.GD_FILE +
+            str(cng) + '.json') + ' для чтения')
+        info.output(info_object, message)
 
         try:
             file = open(settings.GD_FILE + str(cng) + '.json', 'r')
         # Если файл не существует
         except FileNotFoundError:
             # Выводим в консоль сообщение об ошибке.
-            print('    ' + settings.GD_FILE + str(cng) +
-                '.json не существует!')
-            # (A) Добавить запись в лог-файл.
+            message = ('_Файл ' + str(settings.GD_FILE) + str(cng) +
+                '.json не существует.')
+            info.output(info_object, message)
         # Если всё в порядке, читаем файл...
         else:
             input_data = file.read()
-            # (W) Добавить проверку на пустой файл.
+            # Если файл пустой, сообщаем об этом. И больше ничего....
+            if len(input_data) == 0:
+                message = ('_Файл ' + str(settings.GD_FILE) + str(cng) +
+                    '.json пустой.')
+                info.output(info_object, message)
             # Закрываем файл.
             file.close()
+            message = ('_Файл ' + str(settings.GD_FILE) + str(cng) +
+                    '.json закрыт.')
+            info.output(info_object, message)
 
         self.cng = json.loads(input_data)['cng']
         self.genotype = json.loads(input_data)['genotype']
+        message = ('_Из файла ' + str(settings.GD_FILE) + str(cng) +
+            '.json получено: cng = ' + str(self.cng) + ', genotype = [' +
+            str(self.genotype) + ']')
+        info.output(info_object, message)
         
     def program(self, ps, direction, x, y, health, number, overview = []):
         """ Программа генотипа.
             (ps == Program Step). """
+
+        # Вывод работы метода класса:
+        # Название служебной программы,
+        # которая запрашивает вывод информации.
+        info_object = 'genotype.Genotype.program'
         
         # Инициализируем переменную.
         message = ''
 
         # Код "0" = "Ничего не делаю."
         if self.genotype[ps] == 0 or self.genotype[ps] > 5:
-            message = 'ничего не делаю!'
+            message = ('Ничего не делаю!')
             ps += 1
 
         # Код "1" = "Поворачиваюсь в сторону."
@@ -200,8 +308,8 @@ class Genotype:
         # 3---4
         # 5-6-7
         elif self.genotype[ps] == 1:
-            message = 'повернул в сторону!'
             direction = self.genotype[ps+1]%8
+            message = ('Повернул в сторону!')
             ps += 2
             
         # Код "2" = "Двигаюсь в сторону."
@@ -214,45 +322,45 @@ class Genotype:
                 self.overview_check('Move', 'NW', overview)):
                 x -= 1;
                 y -= 1;
-                message = 'двигаюсь на северо-запад!'
+                message = 'Двигаюсь на северо-запад!'
 
             elif (ps < 63 and self.genotype[ps+1]%8 == 1 and
                 self.overview_check('Move', 'N', overview)):
                 y -= 1;
-                message = 'двигаюсь на север!'
+                message = 'Двигаюсь на север!'
 
             elif (ps < 63 and self.genotype[ps+1]%8 == 2 and
                 self.overview_check('Move', 'NE', overview)):
                 x += 1;
                 y -= 1;
-                message = 'двигаюсь на северо-восток!'
+                message = 'Двигаюсь на северо-восток!'
 
             elif (ps < 63 and self.genotype[ps+1]%8 == 3 and
                 self.overview_check('Move', 'W', overview)):
                 x -= 1;
-                message = 'двигаюсь на запад!'
+                message = 'Двигаюсь на запад!'
 
             elif (ps < 63 and self.genotype[ps+1]%8 == 4 and
                 self.overview_check('Move', 'E', overview)):
                 x += 1;
-                message = 'двигаюсь на восток!'
+                message = 'Двигаюсь на восток!'
 
             elif (ps < 63 and self.genotype[ps+1]%8 == 5 and
                 self.overview_check('Move', 'SW', overview)):
                 x -= 1;
                 y += 1;
-                message = 'двигаюсь на юго-запад!'
+                message = 'Двигаюсь на юго-запад!'
 
             elif (ps < 63 and self.genotype[ps+1]%8 == 6 and
                 self.overview_check('Move', 'S', overview)):
                 y += 1;
-                message = 'двигаюсь на юг!'
+                message = 'Двигаюсь на юг!'
 
             elif (ps < 63 and self.genotype[ps+1]%8 == 7 and
                 self.overview_check('Move', 'SE', overview)):
                 x += 1;
                 y += 1;
-                message = 'двигаюсь на юго-восток!'
+                message = 'Двигаюсь на юго-восток!'
             
             # Увеличиваем шаг программы.
             ps += 2
@@ -262,7 +370,7 @@ class Genotype:
         # 3---4
         # 5-6-7
         elif self.genotype[ps] == 3:
-            message = 'съедаю впереди стоящего, если он...'
+            message = 'Съедаю впереди стоящего, если он...'
             if not(overview[direction] == settings.EMPTY or
                 overview[direction] == settings.WALL):
                 health += 50
@@ -272,20 +380,21 @@ class Genotype:
             
         # Код "4" = "Фотосинтез."
         elif self.genotype[ps] == 4:
-            message = 'фотосинтез!'
+            message = 'Фотосинтез!'
             health += 10
             ps += 1
             
         # Код "5" = "Конец программы генотипа."
         elif self.genotype[ps] == 5:
-            message = 'конец программы генотипа!'
+            message = 'Конец программы генотипа!'
             ps = 0
         
         # Выводим на экран консоли действие бота.
-        if message and settings.DEBUG:
-            print('Бот №' + str(number) + ' - генотип №' + str(self.cng) + ' (' +
-                str(x) + ', ' + str(y) + ') - ' + message +
+        if message:
+            message = ('Бот №' + str(number) + ' - генотип №' + str(self.cng) +
+                ' (' + str(x) + ', ' + str(y) + ') - ' + message +
                 ' Ячейка памяти №' + str(ps) + '.')
+            info.output(info_object, message)
 
         # Проверяем не закончилась ли программа.
         if ps >= 63:
@@ -304,6 +413,12 @@ class Genotype:
         # 0-1-2
         # 3---4
         # 5-6-7
+
+        # Вывод работы метода класса:
+        # Название служебной программы,
+        # которая запрашивает вывод информации.
+        info_object = 'genotype.Genotype.overview_check'
+
         if operation == 'Move':
             Answer = False
 
@@ -317,7 +432,8 @@ class Genotype:
                 direction == 'SE' and overview[7] == settings.EMPTY):
                 Answer = True
             else:
-                print('    Движение в сторону не возможно - клетка занята.')
+                message = 'Движение в сторону не возможно - клетка занята.'
+                info.output(info_object, message)
             return Answer
         
     def console_output(self):

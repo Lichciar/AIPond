@@ -7,16 +7,16 @@
 
 Скрипт иллюстрирующий генный алгоритм.
 Начало: 28 марта 2018 г. 00:16.
-Обновлена: 31 июля 2020 г. 20:40.
+Обновлена: 28 июня 2024 г. 14:10.
 
 """
 
 # Версия скрипта.  
-version = '0.1.1'
+version = '0.1.2'
 
 # Планирование разработки:
 
-# Исправлено в ver.0.1.0:
+# Выполнено в ver.0.1.0:
 # -----------------------
 # 1.Создал прототип окна с рабочей графической областью,
 #   заполняющееся квадратами случайного цвета.
@@ -24,32 +24,33 @@ version = '0.1.1'
 # 3.Создать класс поля.
 # 4.Создать класс экземпляра AI.
 # 5.Генотип смотрим в файле.
-#
+
+# Выполнено в ver.0.1.1 от 31 июля 2020 г.:
+# -------------------------------------------
+# 1. Собрать с новым классом Genotype.
+# 2. Первая более или менее рабочая версия.
+
+# Выполнено в ver.0.1.2 от 28 июня 2024 г.:
+# ----------------------
+# 1. Добавлен контроль версии скрипта-настройки settings.py.
+# 2. Небольшие правки комментариев.
+# 3. Настроена ГЛУПАЯ мутация генотипов.
+# 4. Проверка на переполнение ботов привязана к количеству клеток.
+# 5. Подключена служба фиксации информации "info".
+#    Требуется её настройка.
+# 6. Скрипт теперь выводит всю слуужебную информацию через класс info.
+
 # План работ на ver.0.1.X:
 # ----------------------
-# 1. Собрать с новыми класссами.
-# 2. 
 
-# Подключаем настройки.
-import settings
-
-# Подключаем класс искуственного интелекта.
-import bot
-
-# Подключаем класс искуственного интелекта.
-import genotype
-
-# Подключаем класс окружающей среды.
-import board
-
-# Подключаем модуль JSON.
-import json
-
-# Подключаем модуль GUI/API - Tk.
-import tkinter
-
-# Подключаем модуль генератора случайных чисел.
-import random
+import settings # Подключаем настройки.
+import info     # Подключаем систему фиксирования работы скрипта.
+import bot      # Подключаем класс искуственного интелекта.
+import genotype # Подключаем класс искуственного интелекта.
+import board    # Подключаем класс окружающей среды.
+import json     # Подключаем модуль JSON.
+import tkinter  # Подключаем модуль GUI/API - Tk.
+import random   # Подключаем модуль генератора случайных чисел.
 
 # Описываем переменные.
 bot_array = []                      # Массив ботов.
@@ -61,13 +62,25 @@ main_window = tkinter.Tk()
 
 # В качестве названия окна используем название скрипта
 # и его текущая версия.
-main_window.title('AIPond v.' + version)
+main_window.title('AIPond v. ' + version)
 
-print('Версия бота: ', bot.version)
-print('Версия генотипа: ', genotype.version)
-print('Версия окружающего мира для ботов:', board.version)
+# Вывод работы инициализации скрипта:
+# Название служебной программы,
+# которая запрашивает вывод информации.
+info_object = 'ai_pond.__main__'
+# Вывод информации.
+message = 'Версия бота: ' + bot.version
+info.output(info_object, message)
+message = 'Версия генотипа: '+ genotype.version
+info.output(info_object, message)
+message = 'Версия окружающего мира для ботов: ' + board.version
+info.output(info_object, message)
+message = 'Версия настроек: ' + settings.version
+info.output(info_object, message)
+message = 'Версия системы фиксации информации: ' + info.version
+info.output(info_object, message)
 
-# Создаём среду в которой будет жить AI.
+# Создаём среду в которой будут жить боты.
 pond = tkinter.Canvas(main_window, width=settings.WIDTH,
     height=settings.HEIGHT)
 pond.pack()
@@ -101,7 +114,13 @@ for loop in range(0, number - settings.NUMBER_DEFAULT):
 # (В будущем он должен быть всё таки конечным).
 step = 0
 while True:
-    print('---- Ход №' + str(step) + ' ----')
+    # Вывод работы бесконечного цикла скрипта:
+    # Название служебной программы,
+    # которая запрашивает вывод информации.
+    info_object = 'ai_pond.__main__.step'
+    # Вывод информаци.
+    message = 'Ход № ' + str(step)
+    info.output(info_object, message)
 
     # Перед каждым ходом очищаем список мёртвых ботов.
     rip = []
@@ -151,24 +170,54 @@ while True:
                 overview_after[loop_overview]):
                 # Убиваем съеденого бота...
                 rip.append(overview_before[loop_overview])
-                print('Бот №' + str(overview_before[loop_overview]) +
+                # Название служебной программы,
+                # которая запрашивает вывод информации.
+                info_object = 'ai_pond.__main__'
+                # Вывод информаци.
+                message = ('Бот №' + str(overview_before[loop_overview]) +
                     ' был съеден.')
+                info.output(info_object, message)
 
         # Если здоровье бота превысило 100%,
-        # бот может сделать свою копию или...
-        # пока, что только копию....
-        # Здесь должна быть МУТАЦИЯ.
+        # бот может сделать свою копию или нового бота с мутирующим
+        # от себя генотипом.
         if bot_array[loop].health > 100:
 
-            print('    Бот №' + str(bot_array[loop].number) +
+            # Название служебной программы,
+            # которая запрашивает вывод информации.
+            info_object = 'ai_pond.__main__'
+            # Вывод информаци.
+            message = ('Бот №' + str(bot_array[loop].number) +
                 ' пора плодиться!')
+            info.output(info_object, message)
             bot_array[loop].health //= 2
             # Ищем поблизости свободную клетку.
             (new_x, new_y, freecell) = main_board.get_freecell(
                 bot_array[loop].x, bot_array[loop].y)
-            # Принятие решения о мутации клетки...
-            # Если найдена пустая клетка - делаем потомство...
-            if freecell:
+            # Роллим на мутацию бота...
+            mutatin_roll = random.randint(0, 100)
+            # Если найдена пустая клетка и шанс на мутацию успешен,
+            # то создаём нового бота с мутацией.
+            if freecell and mutatin_roll <= settings.MUTATION_CHANCE:
+                # Производим мутацию генотипа родителя.
+                bot_mutation_genotype = genotype.Genotype('Mutation',
+                    bot_genotype.genotype)
+                # и сохраняем её...
+                bot_mutation_genotype.save()
+                # Добавляем бота с мутированным генотипом.
+                bot_array.append(bot.Bot(x = new_x, y = new_y,
+                    cng = bot_mutation_genotype.cng, number = number))
+                main_board.board[main_board.td_in_l(new_x, new_y)] = number
+                number += 1
+                # Название служебной программы,
+                # которая запрашивает вывод информации.
+                info_object = 'ai_pond.__main__'
+                # Вывод информаци.
+                message = 'Появился новый генотип!'
+                info.output(info_object, message)
+            # Если найдена пустая клетка, но шанс на мутацию провален,
+            # то создаём нового бота с геномом бота родителя.  
+            elif freecell and mutatin_roll > settings.MUTATION_CHANCE:
                 bot_array.append(bot.Bot(x = new_x, y = new_y,
                     cng = bot_array[loop].cng, number = number))
                 main_board.board[main_board.td_in_l(new_x, new_y)] = number
@@ -180,25 +229,46 @@ while True:
         # Если бот умер в процессе выполнения программы,
         # удаляем его из мира.
         if bot_array[loop].health == 0:
-            print('Бот №' + str(bot_array[loop].number) + '- Умер.')
+            # Название служебной программы,
+            # которая запрашивает вывод информации.
+            info_object = 'ai_pond.__main__'
+            # Вывод информаци.
+            message = 'Бот №' + str(bot_array[loop].number) + '- Умер'
+            info.output(info_object, message)
             rip.append(bot_array[loop].number)
             continue
 
     # Удаляем мёртвых ботов.
-    print('bot before', len(bot_array))
-    print(rip)
+    # Название служебной программы,
+    # которая запрашивает вывод информации.
+    info_object = 'ai_pond.__main__.rip'
+    # Вывод информаци.
+    message = 'bot before ' + str(len(bot_array))
+    info.output(info_object, message)
+    message = rip
+    info.output(info_object, message)
     for loop_rip in rip:
         for loop in range(0, len(bot_array)):
             if loop_rip == bot_array[loop].number:
-                print('Удаляю бота №' + str(bot_array[loop].number) + '.')
+                # Название служебной программы,
+                # которая запрашивает вывод информации.
+                info_object = 'ai_pond.__main__'
+                # Вывод информаци.
+                message = 'Удаляю бота №' + str(bot_array[loop].number)
+                info.output(info_object, message)
                 main_board.board[main_board.td_in_l(bot_array[loop].x,
                     bot_array[loop].y)] = settings.EMPTY
                 del bot_array[loop]
                 break
-    print('bot after', len(bot_array))
+    # Название служебной программы,
+    # которая запрашивает вывод информации.
+    info_object = 'ai_pond.__main__.rip'
+    # Вывод информаци.
+    message = 'bot after' + str(len(bot_array))
+    info.output(info_object, message)
 
     #ТЕСТ
-    if (len(bot_array) > 64 or len(bot_array) < 2):
+    if (len(bot_array) > ((settings.CELL - 2) ** 2) or len(bot_array) < 2):
         while True:
             exit 
 
